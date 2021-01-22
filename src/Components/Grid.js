@@ -1,13 +1,14 @@
-import {useReducer} from 'react';
+import {useReducer, useState} from 'react';
 import {AgGridColumn, AgGridReact} from 'ag-grid-react';
 
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
+import 'ag-grid-enterprise'
 
 const initialRowData = [
-    {make: "Toyota", model: "Celica", multi: {price: 15000, style: null}},
-    {make: "Ford", model: "Mondeo", multi: {price: 32000, style: null}},
-    {make: "Porsche", model: "Boxter", multi: {price: 72000, style: null}}
+    {id: 0, make: "Toyota", model: "Celica", multi: {price: 15000, style: null}},
+    {id: 1, make: "Ford", model: "Mondeo", multi: {price: 32000, style: null}},
+    {id: 2, make: "Porsche", model: "Boxter", multi: {price: 72000, style: null}}
 ]
 
 const LOW = 'low'
@@ -15,63 +16,36 @@ const MEDIUM = 'medium'
 const HIGH = 'high'
 
 const reducer = (state, action) => {
-    console.log(action.type)
+    console.log(action.style)
+    console.log(action.id)
     const newState = [...state];
 
-    switch (action.type) {
-        case LOW:
-            return newState.map(
-                it => {
-                    if (it.multi.price < 20000) {
-                        return {
-                            ...it,
-                            multi: {
-                                ...it.multi,
-                                style: 'low'
-                            }
-                        }
+    return newState.map(
+        it => {
+            if (it.id === action.id) {
+                return {
+                    ...it,
+                    multi: {
+                        ...it.multi,
+                        style: action.style
                     }
-                    return it;
                 }
-            );
-        case MEDIUM:
-            return newState.map(
-                it => {
-                    if (20000 <= it.multi.price && it.multi.price < 40000) {
-                        return {
-                            ...it,
-                            multi: {
-                                ...it.multi,
-                                style: 'medium'
-                            }
-                        }
-                    }
-                    return it;
-                }
-            );
-        case HIGH:
-            return newState.map(
-                it => {
-                    if (it.multi.price > 40000) {
-                        return {
-                            ...it,
-                            multi: {
-                                ...it.multi,
-                                style: 'high'
-                            }
-                        }
-                    }
-                    return it;
-                }
-            );
-        default:
-            throw new Error(`default hit ${action.type}`);
-    }
+            }
+            return it;
+        }
+    );
+
 }
 
 
 export function Grid() {
+    const [gridApi, setGridApi] = useState({});
     const [rowData, dispatch] = useReducer(reducer, initialRowData);
+    const [selectedRowId, setSelectedRowId] = useState(null);
+
+    const onGridReady = (params) => {
+        setGridApi(params.api);
+    }
 
     const GRID_STYLES = {
         height: 200,
@@ -98,18 +72,39 @@ export function Grid() {
         return params.data.multi.price
     }
 
+    const onSelectionChanged = () => {
+        const selectedRows = gridApi.getSelectedRows();
+        setSelectedRowId(selectedRows[0].id)
+    };
+
+    const buttonClickHandler = (style) => {
+        if (!(selectedRowId == null)) {
+            const action = {
+                style: style,
+                id: selectedRowId
+            }
+            dispatch(action)
+        }
+    }
+
+
     return (
         <div>
             <span>
-                <button onClick={() => dispatch({type: LOW})}>low</button>
-                <button onClick={() => dispatch({type: MEDIUM})}>medium</button>
-                <button onClick={() => dispatch({type: HIGH})}>high</button>
+                <button onClick={() => buttonClickHandler(LOW)}>low</button>
+                <button onClick={() => buttonClickHandler(MEDIUM)}>medium</button>
+                <button onClick={() => buttonClickHandler(HIGH)}>high</button>
             </span>
             <div
                 className="ag-theme-alpine"
                 style={GRID_STYLES}>
                 <AgGridReact
-                    rowData={rowData}>
+                    rowData={rowData}
+                    rowSelection={'single'}
+                    onGridReady={onGridReady}
+                    onSelectionChanged={onSelectionChanged}
+
+                >
                     <AgGridColumn field="make"/>
                     <AgGridColumn field="model"/>
                     <AgGridColumn
