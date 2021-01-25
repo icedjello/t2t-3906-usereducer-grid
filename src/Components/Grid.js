@@ -48,28 +48,33 @@ const reducer = (state, action) => {
             return newState.map(
                 row => {
                     const price = row.price.amount;
+                    const newStyle = action.state ? LOW : null;
+
                     if (price < 20000) {
                         return {
                             ...row,
                             price: {
                                 ...row.price,
-                                style: LOW
+                                style: newStyle
                             }
                         }
                     }
                     return row;
                 }
             );
+
         case MEDIUM:
             return newState.map(
                 row => {
                     const price = row.price.amount;
+                    const newStyle = action.state ? MEDIUM : null;
+
                     if (price >= 20000 && price < 55000) {
                         return {
                             ...row,
                             price: {
                                 ...row.price,
-                                style: MEDIUM
+                                style: newStyle
                             }
                         }
                     }
@@ -80,12 +85,14 @@ const reducer = (state, action) => {
             return newState.map(
                 row => {
                     const price = row.price.amount;
+                    const newStyle = action.state ? HIGH : null;
+
                     if (price >= 55000) {
                         return {
                             ...row,
                             price: {
                                 ...row.price,
-                                style: HIGH
+                                style: newStyle
                             }
                         }
                     }
@@ -160,10 +167,18 @@ export function Grid() {
         }
     }
 
-    const buttonHighlightHandler = (style) => {
-        console.log('select', style)
+    // const buttonHighlightHandler = (style) => {
+    //     console.log('select', style)
+    //     const action = {
+    //         type: style,
+    //     }
+    //     dispatch(action)
+    // }
+
+    const checkBoxHandler = (style, event) => {
         const action = {
             type: style,
+            state: event.target.checked
         }
         dispatch(action)
     }
@@ -171,13 +186,32 @@ export function Grid() {
     return (
         <div>
             <span style={{display: "block"}}>
-                <button onClick={() => buttonSelectClickHandler()}>Select</button>
+                <button onClick={() => buttonSelectClickHandler()}>Highlight Current Row's Make</button>
             </span>
-            <span>
-                 <button onClick={() => buttonHighlightHandler(LOW)}>low</button>
-                 <button onClick={() => buttonHighlightHandler(MEDIUM)}>medium</button>
-                 <button onClick={() => buttonHighlightHandler(HIGH)}>high</button>
-            </span>
+            <div>
+                <label style={{display: "block"}}>
+                    Price &lt; 20000
+                    <input
+                        type="checkbox"
+                        onChange={event => checkBoxHandler(LOW, event)}
+                    />
+                </label>
+                <label style={{display: "block"}}>
+                    20000 &le; Price &lt; 55000
+                    <input
+                        type="checkbox"
+                        onChange={event => checkBoxHandler(MEDIUM, event)}
+                    />
+                </label>
+                <label style={{display: "block"}}>
+                    55000 &le; Price
+                    <input
+                        type="checkbox"
+                        onChange={event => checkBoxHandler(HIGH, event)}
+
+                    />
+                </label>
+            </div>
             <div
                 className="ag-theme-alpine"
                 style={GRID_STYLES}>
@@ -186,14 +220,12 @@ export function Grid() {
                     rowSelection={'single'}
                     onGridReady={onGridReady}
                     onSelectionChanged={onSelectionChanged}
-
                 >
                     <AgGridColumn
                         field="brand"
                         headerName="Make"
                         valueGetter={makeValueGetter}
                         cellStyle={params => cellStyler(params)}
-
                     />
                     <AgGridColumn field="model"/>
                     <AgGridColumn
@@ -201,7 +233,6 @@ export function Grid() {
                         headerName="Price"
                         valueGetter={priceValueGetter}
                         cellClassRules={priceClassRules}
-
                     />
                 </AgGridReact>
             </div>
