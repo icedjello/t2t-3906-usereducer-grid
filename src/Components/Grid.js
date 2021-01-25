@@ -186,7 +186,7 @@ export function Grid() {
     return (
         <div>
             <span style={{display: "block"}}>
-                <button onClick={() => buttonSelectClickHandler()}>Highlight Current Row's Make</button>
+                <button onClick={() => buttonSelectClickHandler()}>Highlight Selected Row</button>
             </span>
             <div>
                 <label style={{display: "block"}}>
@@ -227,12 +227,17 @@ export function Grid() {
                         valueGetter={makeValueGetter}
                         cellStyle={params => cellStyler(params)}
                     />
-                    <AgGridColumn field="model"/>
+                    <AgGridColumn
+                        field="model"
+                        cellStyle={params => cellStyler(params)}
+                    />
                     <AgGridColumn
                         field="multi"
                         headerName="Price"
                         valueGetter={priceValueGetter}
                         cellClassRules={priceClassRules}
+                        cellStyle={params => cellStyler(params)}
+
                     />
                 </AgGridReact>
             </div>
